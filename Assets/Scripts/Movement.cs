@@ -70,20 +70,26 @@ public class Movement : MonoBehaviour,  IDragHandler, IEndDragHandler {
         float oldY = Mathf.Round(((initialPosition.y - 47.9f) / 50));
         float diffX = x - oldX;
         float diffY = y - oldY;
-        bool status = Legality.Check(gameObject.name, new Vector2(oldX, oldY), new Vector2(diffX, diffY), board.board);
+        bool status = Legality.Check(gameObject, new Vector2(oldX, oldY), new Vector2(diffX, diffY), board.gameBoard);
         if (!status) {
             x = Mathf.Round(((initialPosition.x - 215.19f) / 50f));
             y = Mathf.Round(((initialPosition.y - 47.9f) / 50));
         }
         board.board[(int)oldY, (int)oldX] = ' ';
         board.board[(int)y, (int)x] = (char)gameObject.name.ToCharArray()[0];
-        Vector2 offset = new Vector2(offsetX * x, offsetY * y);
-        rectTransform.anchorMin = new Vector2(0.25f, 0.05555104f) + offset;
-        rectTransform.anchorMax = new Vector2(0.313f, 0.1667f) + offset;
-        rectTransform.offsetMin = Vector2.zero;
-        rectTransform.offsetMax = Vector2.zero;
+        board.gameBoard[(int)oldY, (int)oldX] = null;
+        if (board.gameBoard[(int)y, (int)x] != null) {
+            Destroy(board.gameBoard[(int)y, (int)x]);
+        }
+        board.gameBoard[(int)y, (int)x] = gameObject;
+        //Vector2 offset = new Vector2(offsetX * x, offsetY * y);
+        //rectTransform.anchorMin = new Vector2(0.25f, 0.05555104f) + offset;
+        //rectTransform.anchorMax = new Vector2(0.313f, 0.1667f) + offset;
+        //rectTransform.offsetMin = Vector2.zero;
+        //rectTransform.offsetMax = Vector2.zero;
         statusText.text = "Status: " + (status ?  "<color=green> Legal </color>" : "<color=red> Illegal </color>");
         board.DisplayBoard();
+        board.DrawBoard();
         initial = true;
     }
 }
