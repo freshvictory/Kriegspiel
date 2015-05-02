@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class Legality {
 
+    public static bool inCheck;
+
     public static bool Check(GameObject piece, Vector2 position, Vector2 move, GameObject[,] board) {
 
         // Check that we're on the board
@@ -116,5 +118,12 @@ public class Legality {
     private static bool KingLegality(GameObject piece, Vector2 move) {
         return move.x <= 1 && move.y <= 1;
     }
-	
+
+    private static bool BishopCheck(GameObject piece, Vector2 position, GameObject[,] board) {
+        bool isInCheck = false;
+
+
+
+        return isInCheck;
+    }
 }
