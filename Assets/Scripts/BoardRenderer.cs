@@ -66,36 +66,39 @@ public class BoardRenderer : MonoBehaviour
 	}
 
     private void MakeBoard(PlayerColor playerColor) {
-        this.State = new State();
+        this.State = new State(playerColor);
     }
 
-    public void DrawBoard(PlayerColor playerColor) {
+    public void DrawBoard() {
 	    var newPieceObjects = new PieceObjects();
 
-	    for (int rank = 0; rank < 8; rank++)
+	    foreach (var position in Board.Positions)
 	    {
-		    for (int file = 0; file < 8; file++)
-		    {
-			    var position = new Position(rank, file);
-			    var piece = this.State.Board[position];
+			var piece = this.State.Board[position];
 
-			    if (piece.Color != PlayerColor.None)
-			    {
-				    var pieceObject = this.pieceObjects.GetNext(piece);
+			if (piece.Color != PlayerColor.None)
+			{
+				var pieceObject = this.pieceObjects.GetNext(piece);
 
-				    if (pieceObject == null)
-				    {
-					    pieceObject = this.InstantiatePiece(piece);
-				    }
+				if (pieceObject == null)
+				{
+					pieceObject = this.InstantiatePiece(piece);
+				}
 
-				    newPieceObjects.Add(piece, pieceObject);
-				    
-				    this.PositionPiece(pieceObject, position);
-			    }
-		    }
-	    }
+				newPieceObjects.Add(piece, pieceObject);
+				
+				this.PositionPiece(pieceObject, position);
+			}
+		}
 
 	    this.BoardText.text = this.State.Board.GetBoardText();
+
+	    var takenPieces = this.pieceObjects.GetTakenPieces();
+	    foreach (var takenPiece in takenPieces)
+	    {
+		    Destroy(takenPiece);
+	    }
+	    
 	    this.pieceObjects = newPieceObjects;
     }
 

@@ -4,24 +4,24 @@ using UnityEngine;
 
 public class PieceObjects
 {
-    private IDictionary<PieceType, Stack<GameObject>> whiteObjects = new Dictionary<PieceType, Stack<GameObject>>
+    private IDictionary<PieceType, Queue<GameObject>> whiteObjects = new Dictionary<PieceType, Queue<GameObject>>
     {
-        [PieceType.Pawn] = new Stack<GameObject>(),
-        [PieceType.Rook] = new Stack<GameObject>(),
-        [PieceType.Bishop] = new Stack<GameObject>(),
-        [PieceType.Knight] = new Stack<GameObject>(),
-        [PieceType.Queen] = new Stack<GameObject>(),
-        [PieceType.King] = new Stack<GameObject>()
+        [PieceType.Pawn] = new Queue<GameObject>(),
+        [PieceType.Rook] = new Queue<GameObject>(),
+        [PieceType.Bishop] = new Queue<GameObject>(),
+        [PieceType.Knight] = new Queue<GameObject>(),
+        [PieceType.Queen] = new Queue<GameObject>(),
+        [PieceType.King] = new Queue<GameObject>()
     };
     
-    private IDictionary<PieceType, Stack<GameObject>> blackObjects = new Dictionary<PieceType, Stack<GameObject>>
+    private IDictionary<PieceType, Queue<GameObject>> blackObjects = new Dictionary<PieceType, Queue<GameObject>>
     {
-        [PieceType.Pawn] = new Stack<GameObject>(),
-        [PieceType.Rook] = new Stack<GameObject>(),
-        [PieceType.Bishop] = new Stack<GameObject>(),
-        [PieceType.Knight] = new Stack<GameObject>(),
-        [PieceType.Queen] = new Stack<GameObject>(),
-        [PieceType.King] = new Stack<GameObject>()
+        [PieceType.Pawn] = new Queue<GameObject>(),
+        [PieceType.Rook] = new Queue<GameObject>(),
+        [PieceType.Bishop] = new Queue<GameObject>(),
+        [PieceType.Knight] = new Queue<GameObject>(),
+        [PieceType.Queen] = new Queue<GameObject>(),
+        [PieceType.King] = new Queue<GameObject>()
     };
 
     public GameObject GetNext(Piece piece)
@@ -43,10 +43,10 @@ public class PieceObjects
         switch (piece.Color)
         {
             case PlayerColor.White:
-                this.whiteObjects[piece.Type].Push(gameObject);
+                this.whiteObjects[piece.Type].Enqueue(gameObject);
                 break;
             case PlayerColor.Black:
-                this.blackObjects[piece.Type].Push(gameObject);
+                this.blackObjects[piece.Type].Enqueue(gameObject);
                 break;
             case PlayerColor.None:
             default:
@@ -54,10 +54,29 @@ public class PieceObjects
         }
     }
 
-    private static GameObject GetPiece(IDictionary<PieceType, Stack<GameObject>> objects, PieceType type)
+    public IEnumerable<GameObject> GetTakenPieces()
+    {
+        foreach (var pieceTypes in this.whiteObjects)
+        {
+            foreach (var gameObject in pieceTypes.Value)
+            {
+                yield return gameObject;
+            }
+        }
+
+        foreach (var pieceTypes in this.blackObjects)
+        {
+            foreach (var gameObject in pieceTypes.Value)
+            {
+                yield return gameObject;
+            }
+        }
+    }
+
+    private static GameObject GetPiece(IDictionary<PieceType, Queue<GameObject>> objects, PieceType type)
     {
         return objects[type].Count > 0
-            ? objects[type].Pop()
+            ? objects[type].Dequeue()
             : null;
     }
 }

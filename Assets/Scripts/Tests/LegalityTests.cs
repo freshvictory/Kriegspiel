@@ -84,6 +84,7 @@ namespace Tests
         [TestCase(1, 1, 3, 1)] // b4
         [TestCase(2, 5, 3, 5)] // f4
         [TestCase(1, 1, 2, 2)] // bxc3
+        [TestCase(6, 1, 5, 1)] // b6
         public void TestPawnLegal(int originRank, int originFile, int destinationRank, int destinationFile)
         {
             var legality = Legality.CheckMove(

@@ -14,6 +14,12 @@
         this.Board = new Board();
     }
 
+    public State(PlayerColor playerColor)
+    {
+        this.Turn = PlayerColor.White;
+        this.Board = new Board(playerColor);
+    }
+
     public State(PlayerColor turn, Board board)
     {
         this.Turn = turn;

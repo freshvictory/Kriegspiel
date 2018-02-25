@@ -52,7 +52,7 @@
     {
         var delta = Position.Delta(origin, destination);
             
-        return IsForward(piece, origin, destination)
+        return board.Vector(piece.Color, origin, destination).Rank > 0
                && (PawnMoveLegality(delta, piece, origin, destination, board)
                    || PawnAttackLegality(delta, piece, destination, board));
     }
@@ -116,10 +116,5 @@
     private static bool CheckPathCollisions(Position origin, Position destination, Board board)
     {
         return true;
-    }
-
-    private static bool IsForward(Piece piece, Position origin, Position destination)
-    {
-        return Position.Normalize(destination, piece.Color).Rank > Position.Normalize(origin, piece.Color).Rank;
     }
 }
