@@ -1,50 +1,130 @@
-﻿using UnityEngine;
-using System.Collections;
+﻿using System.Collections.Generic;
+using System.Text;
+using UnityEngine;
 using UnityEngine.UI;
 
-public class BoardRenderer : MonoBehaviour {
+public class BoardRenderer : MonoBehaviour
+{
+	public GameObject Canvas;
+    public Text BoardText;
+    public Text LegalText;
+	public Text DebugText;
 
-    public Text boardText;
-    public Text legalText;
-    private Vector2 min = new Vector2(0.25f, 0.05555104f);
-    private float offsetX = 0.0623f;
-    private float offsetY = 0.111f;
-    private Vector2 max = new Vector2(0.313f, 0.1667f);
+	public PlayerColor Player;
 
-    [Header("Prefabs")]
-    public PiecePrefab Pawn;
-    public PiecePrefab Rook;
-    public PiecePrefab Knight;
-    public PiecePrefab Bishop;
-    public PiecePrefab Queen;
-    public PiecePrefab King;
+	public GameObject PiecePrefab;
 
-	private IDictionary piecePrefabs;
-    
-    private GameObject[][] pieces;
-    public Piece[,] gameBoard;
-    private GameObject canvas;
+	[Header("Images")]
+	public PieceImage Pawn;
+	public PieceImage Rook;
+	public PieceImage Knight;
+	public PieceImage Bishop;
+	public PieceImage Queen;
+	public PieceImage King;
 
-    public PlayerColor Player;
+	public float Offset;
 
-    void Start() {
-        
+	private IDictionary<PieceType, PieceImage> pieceImages;
+	private PieceObjects pieceObjects = new PieceObjects();
+	
+	public State State;
+
+    void Start()
+    {
+	    this.pieceImages = new Dictionary<PieceType, PieceImage>
+	    {
+		    [PieceType.Pawn] = this.Pawn,
+		    [PieceType.Rook] = this.Rook,
+		    [PieceType.Knight] = this.Knight,
+		    [PieceType.Bishop] = this.Bishop,
+		    [PieceType.Queen] = this.Queen,
+		    [PieceType.King] = this.King
+	    };
+
+	    this.Offset = this.GetComponent<RectTransform>().sizeDelta.x / 8;
+
+	    this.MakeBoard(this.Player);
+	    this.DrawBoard();
     }
 
-    private void MakeBoard(string player) {
-        var board = new Board();
-    }
+	void Update()
+	{
+		var stringBuilder = new StringBuilder();
+		stringBuilder.AppendLine("turn: " + this.State.Turn);
 
-	public void instantiatePiece(int x, int y, GameObject prefab) {
-		GameObject piece = Instantiate(prefab);
-		gameBoard[x, y] = piece.GetComponent<Piece>();
-		Movement movement = piece.GetComponent<Movement>();
-		piece.transform.SetParent(canvas.transform, false);
-		movement.statusText = legalText;
-		movement.board = this;
+		if (this.State.LastMove != null)
+		{
+			stringBuilder.AppendLine("last move: " + this.State.LastMove);
+		}
+
+		if (this.State.LastAttemptedMove != null)
+		{
+			stringBuilder.AppendLine("last attempted move: " + this.State.LastAttemptedMove);
+		}
+
+		this.DebugText.text = stringBuilder.ToString();
 	}
 
-    public void DrawBoard() {
-        
+    private void MakeBoard(PlayerColor playerColor) {
+        this.State = new State();
     }
+
+    public void DrawBoard(PlayerColor playerColor) {
+	    var newPieceObjects = new PieceObjects();
+
+	    for (int rank = 0; rank < 8; rank++)
+	    {
+		    for (int file = 0; file < 8; file++)
+		    {
+			    var position = new Position(rank, file);
+			    var piece = this.State.Board[position];
+
+			    if (piece.Color != PlayerColor.None)
+			    {
+				    var pieceObject = this.pieceObjects.GetNext(piece);
+
+				    if (pieceObject == null)
+				    {
+					    pieceObject = this.InstantiatePiece(piece);
+				    }
+
+				    newPieceObjects.Add(piece, pieceObject);
+				    
+				    this.PositionPiece(pieceObject, position);
+			    }
+		    }
+	    }
+
+	    this.BoardText.text = this.State.Board.GetBoardText();
+	    this.pieceObjects = newPieceObjects;
+    }
+
+	private GameObject InstantiatePiece(Piece piece)
+	{
+		var pieceObject = Instantiate(this.PiecePrefab);
+		
+		var pieceImage = this.pieceImages[piece.Type];
+		var sprite = piece.Color == PlayerColor.White ? pieceImage.White : pieceImage.Black;
+		var image = pieceObject.GetComponent<Image>();
+		image.sprite = sprite;
+
+		pieceObject.name = piece.Type + " (" + piece.Color + ")";
+		
+		return pieceObject;
+
+	}
+	
+	private void PositionPiece(GameObject pieceObject, Position position)
+	{
+		pieceObject.transform.SetParent(this.gameObject.transform);
+
+		var rectTransform = pieceObject.GetComponent<RectTransform>();
+		
+		var positionVector = position.ToVector2(this.Offset);
+		
+		rectTransform.localRotation = Quaternion.identity;
+		rectTransform.localScale = Vector3.one;
+		rectTransform.offsetMin = positionVector;
+		rectTransform.offsetMax = positionVector;
+	}
 }

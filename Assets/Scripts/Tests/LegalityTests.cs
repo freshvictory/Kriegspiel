@@ -15,14 +15,14 @@ namespace Tests
         // 1 R, N, B, Q, K, B, N, R 1  WHITE
         //   a  b  c  d  e  f  g  h
         
-        private readonly Piece[,] board;
+        private readonly Board board;
         
         public LegalityTests()
         {
-            this.board = Board.InitialState;
-            this.board[2, 5] = new Piece(PieceType.Pawn, PlayerColor.White);   // f3
-            this.board[2, 2] = new Piece(PieceType.Bishop, PlayerColor.Black); // Bc3
-            this.board[4, 4] = new Piece(PieceType.Knight, PlayerColor.Black); // Ke5
+            this.board = new Board();
+            this.board[new Position(2, 5)] = new Piece(PieceType.Pawn, PlayerColor.White);   // f3
+            this.board[new Position(2, 2)] = new Piece(PieceType.Bishop, PlayerColor.Black); // Bc3
+            this.board[new Position(4, 4)] = new Piece(PieceType.Knight, PlayerColor.Black); // Ke5
         }
         
         [Theory]

@@ -1,81 +1,59 @@
 ﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
-using UnityEngine.Events;
 
-[RequireComponent(typeof(Piece))]
-public class Movement : MonoBehaviour,  IDragHandler, IEndDragHandler {
-
-    public BoardRenderer board;
-    public Text statusText;
-    private Vector2 min = new Vector2(0.25f, 0.05555104f);
-    private float offsetX = 0.0623f;
-    private float offsetY = 0.111f;
-    private Vector2 max = new Vector2(0.313f, 0.1667f);
-    private bool initial = true;
-    private Vector3 initialPosition;
-	private Piece piece;
-
-	// Use this for initialization
-	void Start () {
-		piece = GetComponent<Piece>();
-    }
+public class Movement : MonoBehaviour,  IDragHandler, IEndDragHandler
+{
+	private RectTransform rectTransform;
+    private BoardRenderer boardRenderer;
+    private Text statusText;
 	
-	// Update is called once per frame
-	void Update () {
+    private bool initial = true;
+    private Position originalPosition;
 
+	void Start ()
+	{
+		this.boardRenderer = this.GetComponentInParent<BoardRenderer>();
+		this.rectTransform = this.GetComponent<RectTransform>();
+		this.statusText = this.boardRenderer.LegalText;
 	}
 
-    public void MovePiece() {
-        statusText.text = "Status: ";
-        if (initial) {
-            initialPosition = transform.position;
-            initial = false;
-        }
-        transform.SetAsLastSibling();
-        transform.position = Input.mousePosition;
-        //Debug.Log("starting couroutine");
-        //StartCoroutine(FindSquare());
-        //Debug.Log("finished coroutine");
-        //GetComponent<Image>().color = Color.blue;
+    public void OnDrag(PointerEventData eventData)
+    {
+        this.MovePiece();
     }
 
-    public void OnDrag(PointerEventData eventData) {
-        MovePiece();
+    public void OnEndDrag(PointerEventData eventData)
+    {
+        this.SetPiece(this.originalPosition);
     }
 
-    public void OnEndDrag(PointerEventData eventData) {
-        SetPiece();
-    }
+	private void MovePiece()
+	{
+		this.statusText.text = "Status: ";
+		if (this.initial)
+		{
+			this.originalPosition = this.rectTransform.offsetMax.ToPosition(this.boardRenderer.Offset);
+			
+			this.initial = false;
+		}
+	    
+		this.rectTransform.SetAsLastSibling();
+		this.rectTransform.position = Input.mousePosition;
+	}
 
-    public void SetPiece() {
-//        RectTransform rectTransform = GetComponent<RectTransform>();
-//        float x = Mathf.Round(((transform.position.x - 215.19f) / 50));
-//        Debug.Log(x);
-//        float y =  Mathf.Round(((transform.position.y - 47.9f) / 50));
-//        Debug.Log(y);
-//        float oldX = Mathf.Round(((initialPosition.x - 215.19f) / 50));
-//        float oldY = Mathf.Round(((initialPosition.y - 47.9f) / 50));
-//        float diffX = x - oldX;
-//        float diffY = y - oldY;
-//		bool status = Legality.Check(piece, new Vector2(oldX, oldY), new Vector2(diffX, diffY), board.gameBoard);
-//        if (!status) {
-//            x = Mathf.Round(((initialPosition.x - 215.19f) / 50f));
-//            y = Mathf.Round(((initialPosition.y - 47.9f) / 50));
-//        }
-//        //board.board[(int)oldY, (int)oldX] = ' ';
-//        //board.board[(int)y, (int)x] = (char)gameObject.name.ToCharArray()[0];
-//        board.gameBoard[(int)oldY, (int)oldX] = null;
-//        if (board.gameBoard[(int)y, (int)x] != null) {
-//			Destroy(board.gameBoard[(int)y, (int)x].gameObject);
-//        }
-//		board.gameBoard[(int)y, (int)x] = piece;
-//
-//        statusText.text = "Status: " + (status ?  "<color=green> Legal </color>" : "<color=red> Illegal </color>");
-//        board.DisplayBoard();
-//        board.DrawBoard();
-//        initial = true;
+    private void SetPiece(Position origin)
+    {
+        var destination = this.rectTransform.offsetMax.ToPosition(this.boardRenderer.Offset);
+
+	    var moveResult = this.boardRenderer.State.Move(origin, destination);
+
+        this.statusText.text = "Status: " + (moveResult == MoveResult.Legal 
+	                               ? "<color=green> Legal </color>"
+	                               : "<color=red>" + moveResult + " </color>");
+	    
+        this.boardRenderer.DrawBoard();
+	    
+        this.initial = true;
     }
 }

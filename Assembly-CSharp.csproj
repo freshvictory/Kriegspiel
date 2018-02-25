@@ -51,14 +51,19 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Scripts\Board.cs" />
     <Compile Include="Assets\Scripts\BoardRenderer.cs" />
-    <Compile Include="Assets\Scripts\Legality.cs" />
+    <Compile Include="Assets\Scripts\Logic\Board.cs" />
+    <Compile Include="Assets\Scripts\Logic\Legality.cs" />
+    <Compile Include="Assets\Scripts\Logic\Move.cs" />
+    <Compile Include="Assets\Scripts\Logic\MoveResult.cs" />
+    <Compile Include="Assets\Scripts\Logic\Piece.cs" />
+    <Compile Include="Assets\Scripts\Logic\Position.cs" />
+    <Compile Include="Assets\Scripts\Logic\State.cs" />
     <Compile Include="Assets\Scripts\Movement.cs" />
-    <Compile Include="Assets\Scripts\MoveResult.cs" />
-    <Compile Include="Assets\Scripts\Piece.cs" />
+    <Compile Include="Assets\Scripts\PieceImage.cs" />
+    <Compile Include="Assets\Scripts\PieceObjects.cs" />
     <Compile Include="Assets\Scripts\PiecePrefab.cs" />
-    <Compile Include="Assets\Scripts\Position.cs" />
+    <Compile Include="Assets\Scripts\PositionExtensions.cs" />
     <Compile Include="Assets\Scripts\Tests\LegalityTests.cs" />
     <Reference Include="UnityEngine.UI">
       <HintPath>/Applications/Unity/Unity.app/Contents/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
