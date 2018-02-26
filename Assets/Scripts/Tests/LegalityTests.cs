@@ -31,12 +31,7 @@ namespace Tests
         [TestCase(4, 4, 3, 6)] // Ng4
         public void TestKnightLegal(int originRank, int originFile, int destinationRank, int destinationFile)
         {
-            var legality = Legality.CheckMove(
-                new Position(originRank, originFile),
-                new Position(destinationRank, destinationFile),
-                this.board);
-
-            Assert.True(legality);
+            Assert.True(GetLegality(originRank, originFile, destinationRank, destinationFile, this.board));
         }
         
         [Theory]
@@ -44,12 +39,7 @@ namespace Tests
         [TestCase(4, 4, 2, 2)] // Nxc3
         public void TestKnightIllegal(int originRank, int originFile, int destinationRank, int destinationFile)
         {
-            var legality = Legality.CheckMove(
-                new Position(originRank, originFile),
-                new Position(destinationRank, destinationFile),
-                this.board);
-
-            Assert.False(legality);
+            Assert.False(GetLegality(originRank, originFile, destinationRank, destinationFile, this.board));
         }
 
         [Theory]
@@ -57,26 +47,16 @@ namespace Tests
         [TestCase(2, 2, 4, 0)] // Ba6
         public void TestBishopLegal(int originRank, int originFile, int destinationRank, int destinationFile)
         {
-            var legality = Legality.CheckMove(
-                new Position(originRank, originFile),
-                new Position(destinationRank, destinationFile),
-                this.board);
-
-            Assert.True(legality);
+            Assert.True(GetLegality(originRank, originFile, destinationRank, destinationFile, this.board));
         }
 
         [Theory]
         [TestCase(2, 2, 3, 2)] // Bc4
-        // [InlineData(2, 2, 0, 0)] // Bxa1
+//        [TestCase(2, 2, 0, 0)] // Bxa1
         [TestCase(2, 2, 6, 6)] // Bxg7
         public void TestBishopIllegal(int originRank, int originFile, int destinationRank, int destinationFile)
         {
-            var legality = Legality.CheckMove(
-                new Position(originRank, originFile),
-                new Position(destinationRank, destinationFile),
-                this.board);
-
-            Assert.False(legality);
+            Assert.False(GetLegality(originRank, originFile, destinationRank, destinationFile, this.board));
         }
         
         [Theory]
@@ -87,12 +67,7 @@ namespace Tests
         [TestCase(6, 1, 5, 1)] // b6
         public void TestPawnLegal(int originRank, int originFile, int destinationRank, int destinationFile)
         {
-            var legality = Legality.CheckMove(
-                new Position(originRank, originFile),
-                new Position(destinationRank, destinationFile),
-                this.board);
-
-            Assert.True(legality);
+            Assert.True(GetLegality(originRank, originFile, destinationRank, destinationFile, this.board));
         }
 
         [Theory]
@@ -105,12 +80,18 @@ namespace Tests
         [TestCase(1, 0, 2, -1)] // a-1
         public void TestPawnIllegal(int originRank, int originFile, int destinationRank, int destinationFile)
         {
-            var legality = Legality.CheckMove(
-                new Position(originRank, originFile),
-                new Position(destinationRank, destinationFile),
-                this.board);
+            Assert.False(GetLegality(originRank, originFile, destinationRank, destinationFile, this.board));
+        }
 
-            Assert.False(legality);
+        private static bool GetLegality(int originRank, int originFile, int destinationRank, int destinationFile, Board board)
+        {
+            var move = GetMove(originRank, originFile, destinationRank, destinationFile, board);
+            return Legality.CheckMove(move, board, move.Piece.Color) == Rule.None;
+        }
+
+        private static Move GetMove(int originRank, int originFile, int destinationRank, int destinationFile, Board board)
+        {
+            return new Move(new Position(originRank, originFile), new Position(destinationRank, destinationFile), board);
         }
     }
 }

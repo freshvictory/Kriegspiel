@@ -48,9 +48,9 @@ public class Movement : MonoBehaviour,  IDragHandler, IEndDragHandler
 
 	    var moveResult = this.boardRenderer.State.Move(origin, destination);
 
-        this.statusText.text = "Status: " + (moveResult == MoveResult.Legal 
+        this.statusText.text = (moveResult == MoveResult.Legal 
 	                               ? "<color=green> Legal </color>"
-	                               : "<color=red>" + moveResult + " </color>");
+	                               : "<color=red>" + moveResult + ": " + this.boardRenderer.State.LastAttemptedMove.Legality + " </color>");
 	    
         this.boardRenderer.DrawBoard();
 	    

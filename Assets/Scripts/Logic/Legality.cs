@@ -1,46 +1,56 @@
-﻿public static class Legality
+﻿using System.Linq;
+using System.Runtime.CompilerServices;
+
+public static class Legality
 {
-    public static bool CheckMove(Position origin, Position destination, Board board)
+    public static Rule CheckMove(Move move, Board board, PlayerColor turn)
     {
-        var piece = board[origin];
-        var delta = Position.Delta(origin, destination);
-
-        if (delta == Delta.Zero)
+        if (move.Piece.Color == PlayerColor.None)
         {
-            return false;
+            return Rule.NotAPiece;
         }
 
-        if (!BoardLegality(destination, board))
+        if (move.Piece.Color != turn)
         {
-            return false;
+            return Rule.OutOfTurn;
+        }
+        
+        if (move.Delta == Delta.Zero)
+        {
+            return Rule.Unmoved;
         }
 
-        if (piece.Color == board[destination].Color)
+        if (!InBounds(move.Destination))
         {
-            return false;
+            return Rule.OutOfBounds;
         }
 
-        switch (piece.Type)
+        if (move.Piece.Color == board[move.Destination].Color)
+        {
+            return Rule.SquareOccupied;
+        }
+
+        switch (move.Piece.Type)
         {
             case PieceType.Pawn:
-                return PawnLegality(piece, origin, destination, board);
+                return PawnLegality(move, board);
             case PieceType.Knight:
-                return KnightLegality(origin, destination);
+                return KnightLegality(move);
             case PieceType.Bishop:
-                return BishopLegality(origin, destination, board);
+                return BishopLegality(move, board);
             case PieceType.Rook:
-                return RookLegality(origin, destination, board);
+                return RookLegality(move, board);
             case PieceType.Queen:
-                return QueenLegality(origin, destination, board);
+                return QueenLegality(move, board);
             case PieceType.King:
-                return KingLegality(piece, origin, destination, board);
+                return KingLegality(move, board);
             case PieceType.None:
             default:
-                return false;
+                return Rule.Impossible;
         }
     }
 
-    private static bool BoardLegality(Position destination, Board board)
+    private static bool InBounds(Position destination)
     {
         return destination.Rank <= 8
             && destination.File <= 8
@@ -48,73 +58,118 @@
             && destination.File >= 0;
     }
 
-    private static bool PawnLegality(Piece piece, Position origin, Position destination, Board board)
+    private static Rule PawnLegality(Move move, Board board)
     {
-        var delta = Position.Delta(origin, destination);
-            
-        return board.Vector(piece.Color, origin, destination).Rank > 0
-               && (PawnMoveLegality(delta, piece, origin, destination, board)
-                   || PawnAttackLegality(delta, piece, destination, board));
+        if (move.Piece.Color == PlayerColor.White && move.Delta.Rank.Direction != (int)Sign.Positive)
+        {
+            return Rule.Impossible;
+        }
+
+        if (move.Piece.Color == PlayerColor.Black && move.Delta.Rank.Direction != (int)Sign.Negative)
+        {
+            return Rule.Impossible;
+        }
+
+        var moveLegality = PawnMoveLegality(move, board);
+
+        return moveLegality != Rule.None
+            ? PawnAttackLegality(move, board)
+            : Rule.None;
     }
 
     // TODO: En passant
-    private static bool PawnMoveLegality(Delta delta, Piece piece, Position origin, Position destination, Board board)
+    private static Rule PawnMoveLegality(Move move, Board board)
     {
-        return delta.File == 0
-               && board[destination].Color == PlayerColor.None
-               && (delta.Rank == 1
-                   || (delta.Rank == 2 && !piece.Moved));
+        if (move.Delta.File.Direction != (int)Sign.None)
+        {
+            return Rule.Impossible;
+        }
+
+        if (board[move.Destination].Color != PlayerColor.None)
+        {
+            return Rule.SquareOccupied;
+        }
+
+        switch (move.Delta.Rank.Magnitude)
+        {
+            case 1:
+                return Rule.None;
+            case 2:
+                return move.Piece.Moved
+                    ? Rule.FirstMoveOnly
+                    : CheckPathCollisions(move, board);
+            default:
+                return Rule.Impossible;
+        }
     }
 
-    private static bool PawnAttackLegality(Delta delta, Piece piece, Position destination, Board board)
+    private static Rule PawnAttackLegality(Move move, Board board)
     {
-        return delta == new Delta(1, 1)
-            && board[destination].Color == piece.Color.Enemy();
+        if (move.Delta == new Delta(1, 1) && board[move.Destination].Color == move.Piece.Color.Enemy())
+        {
+            return Rule.None;
+        }
+
+        return Rule.Impossible;
     }
 
-    private static bool KnightLegality(Position origin, Position destination)
+    private static Rule KnightLegality(Move move)
     {
-        var delta = Position.Delta(origin, destination);
-        
-        return delta == new Delta(2, 1) || delta == new Delta(1, 2);
+        if (move.Delta == new Delta(2, 1) || move.Delta == new Delta(1, 2))
+        {
+            return Rule.None;
+        }
+
+        return Rule.Impossible;
     }
 
-    private static bool BishopLegality(Position origin, Position destination, Board board)
+    private static Rule BishopLegality(Move move, Board board)
     {
-        var delta = Position.Delta(origin, destination);
-        
-        return Delta.IsDiagonal(delta)
-            && CheckPathCollisions(origin, destination, board);
+        if (!Delta.IsDiagonal(move.Delta))
+        {
+            return Rule.Impossible;
+        }
+
+        return CheckPathCollisions(move, board);
     }
 
-    private static bool RookLegality(Position origin, Position destination, Board board)
+    private static Rule RookLegality(Move move, Board board)
     {
-        var delta = Position.Delta(origin, destination);
-        
-        return (Delta.IsHorizontal(delta) || Delta.IsVertical(delta))
-            && CheckPathCollisions(origin, destination, board);
+        if (!Delta.IsHorizontal(move.Delta) && !Delta.IsVertical(move.Delta))
+        {
+            return Rule.Impossible;
+        }
+
+        return CheckPathCollisions(move, board);
     }
 
-    private static bool QueenLegality(Position origin, Position destination, Board board)
+    private static Rule QueenLegality(Move move, Board board)
     {
-        return BishopLegality(origin, destination, board) || RookLegality(origin, destination, board);
+        var bishopLegality = BishopLegality(move, board);
+
+        return bishopLegality == Rule.Impossible
+            ? RookLegality(move, board)
+            : bishopLegality;
     }
 
-    private static bool KingLegality(Piece piece, Position origin, Position destination, Board board)
+    private static Rule KingLegality(Move move, Board board)
     {
-        return Position.Delta(origin, destination) <= new Delta(1, 1)
-            || CastleLegality(piece, origin, destination, board);
+        return move.Delta.Rank.Magnitude <=1 && move.Delta.File.Magnitude <= 1
+            ? Rule.None
+            : CastleLegality(move, board);
     }
 
     // TODO
-    private static bool CastleLegality(Piece piece, Position origin, Position destination, Board board)
+    private static Rule CastleLegality(Move move, Board board)
     {
-        return false;
+        return Rule.Impossible;
     }
 
     // TODO
-    private static bool CheckPathCollisions(Position origin, Position destination, Board board)
+    private static Rule CheckPathCollisions(Move move, Board board)
     {
-        return true;
+        return Position.GetRange(move.Origin, move.Delta).Any(position => board[position].Color != PlayerColor.None)
+            ? Rule.PathOccupied
+            : Rule.None;
     }
 }

@@ -5,7 +5,6 @@ using UnityEngine.UI;
 
 public class BoardRenderer : MonoBehaviour
 {
-	public GameObject Canvas;
     public Text BoardText;
     public Text LegalText;
 	public Text DebugText;
@@ -49,20 +48,6 @@ public class BoardRenderer : MonoBehaviour
 
 	void Update()
 	{
-		var stringBuilder = new StringBuilder();
-		stringBuilder.AppendLine("turn: " + this.State.Turn);
-
-		if (this.State.LastMove != null)
-		{
-			stringBuilder.AppendLine("last move: " + this.State.LastMove);
-		}
-
-		if (this.State.LastAttemptedMove != null)
-		{
-			stringBuilder.AppendLine("last attempted move: " + this.State.LastAttemptedMove);
-		}
-
-		this.DebugText.text = stringBuilder.ToString();
 	}
 
     private void MakeBoard(PlayerColor playerColor) {
@@ -74,7 +59,9 @@ public class BoardRenderer : MonoBehaviour
 
 	    foreach (var position in Board.Positions)
 	    {
-			var piece = this.State.Board[position];
+		    var normalized = Position.Normalize(position, this.Player);
+		    
+			var piece = this.State.Board[normalized];
 
 			if (piece.Color != PlayerColor.None)
 			{
@@ -91,8 +78,6 @@ public class BoardRenderer : MonoBehaviour
 			}
 		}
 
-	    this.BoardText.text = this.State.Board.GetBoardText();
-
 	    var takenPieces = this.pieceObjects.GetTakenPieces();
 	    foreach (var takenPiece in takenPieces)
 	    {
@@ -100,6 +85,9 @@ public class BoardRenderer : MonoBehaviour
 	    }
 	    
 	    this.pieceObjects = newPieceObjects;
+	    
+	    this.DebugText.text = this.MoveInfo();
+	    this.BoardText.text = this.TakenPieces();
     }
 
 	private GameObject InstantiatePiece(Piece piece)
@@ -129,5 +117,47 @@ public class BoardRenderer : MonoBehaviour
 		rectTransform.localScale = Vector3.one;
 		rectTransform.offsetMin = positionVector;
 		rectTransform.offsetMax = positionVector;
+	}
+
+	private string MoveInfo()
+	{
+		var stringBuilder = new StringBuilder();
+		stringBuilder
+			.AppendLine("turn: <b>" + this.State.Turn + "</b>")
+			.AppendLine();
+
+		if (this.State.LastMove != null)
+		{
+			stringBuilder
+				.AppendLine("last: " + this.State.LastMove)
+				.AppendLine();
+		}
+
+		if (this.State.LastAttemptedMove != null)
+		{
+			stringBuilder.AppendLine("tried: " + this.State.LastAttemptedMove);
+		}
+
+		return stringBuilder.ToString();
+	}
+
+	private string TakenPieces()
+	{
+		var stringBuilder = new StringBuilder();
+		foreach (var player in this.State.TakenPieces)
+		{
+			stringBuilder.Append(player.Key)
+				.Append(": ");
+		    
+			foreach (var piece in player.Value)
+			{
+				stringBuilder.Append(piece.Type.Display())
+					.Append(" ");
+			}
+
+			stringBuilder.AppendLine();
+		}
+
+		return stringBuilder.ToString();
 	}
 }

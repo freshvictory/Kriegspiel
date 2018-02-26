@@ -1,77 +1,37 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class PieceObjects
 {
-    private IDictionary<PieceType, Queue<GameObject>> whiteObjects = new Dictionary<PieceType, Queue<GameObject>>
-    {
-        [PieceType.Pawn] = new Queue<GameObject>(),
-        [PieceType.Rook] = new Queue<GameObject>(),
-        [PieceType.Bishop] = new Queue<GameObject>(),
-        [PieceType.Knight] = new Queue<GameObject>(),
-        [PieceType.Queen] = new Queue<GameObject>(),
-        [PieceType.King] = new Queue<GameObject>()
-    };
-    
-    private IDictionary<PieceType, Queue<GameObject>> blackObjects = new Dictionary<PieceType, Queue<GameObject>>
-    {
-        [PieceType.Pawn] = new Queue<GameObject>(),
-        [PieceType.Rook] = new Queue<GameObject>(),
-        [PieceType.Bishop] = new Queue<GameObject>(),
-        [PieceType.Knight] = new Queue<GameObject>(),
-        [PieceType.Queen] = new Queue<GameObject>(),
-        [PieceType.King] = new Queue<GameObject>()
-    };
+    private IDictionary<PlayerColor, IDictionary<PieceType, Queue<GameObject>>> pieceObjects;
 
-    public GameObject GetNext(Piece piece)
+    public PieceObjects()
     {
-        switch (piece.Color)
+        this.pieceObjects = new Dictionary<PlayerColor, IDictionary<PieceType, Queue<GameObject>>>
         {
-            case PlayerColor.White:
-                return GetPiece(this.whiteObjects, piece.Type);
-            case PlayerColor.Black:
-                return GetPiece(this.blackObjects, piece.Type);
-            case PlayerColor.None:
-            default:
-                return null;
-        }
+            [PlayerColor.White] = GetObjectDict(),
+            [PlayerColor.Black] = GetObjectDict()
+        };
     }
 
-    public void Add(Piece piece, GameObject gameObject)
-    {
-        switch (piece.Color)
-        {
-            case PlayerColor.White:
-                this.whiteObjects[piece.Type].Enqueue(gameObject);
-                break;
-            case PlayerColor.Black:
-                this.blackObjects[piece.Type].Enqueue(gameObject);
-                break;
-            case PlayerColor.None:
-            default:
-                break;
-        }
-    }
-
-    public IEnumerable<GameObject> GetTakenPieces()
-    {
-        foreach (var pieceTypes in this.whiteObjects)
-        {
-            foreach (var gameObject in pieceTypes.Value)
+    private static IDictionary<PieceType, Queue<GameObject>> GetObjectDict() 
+        => new Dictionary<PieceType, Queue<GameObject>>
             {
-                yield return gameObject;
-            }
-        }
+                [PieceType.Pawn] = new Queue<GameObject>(),
+                [PieceType.Rook] = new Queue<GameObject>(),
+                [PieceType.Bishop] = new Queue<GameObject>(),
+                [PieceType.Knight] = new Queue<GameObject>(),
+                [PieceType.Queen] = new Queue<GameObject>(),
+                [PieceType.King] = new Queue<GameObject>()
+            };
 
-        foreach (var pieceTypes in this.blackObjects)
-        {
-            foreach (var gameObject in pieceTypes.Value)
-            {
-                yield return gameObject;
-            }
-        }
-    }
+    public GameObject GetNext(Piece piece) => GetPiece(this.pieceObjects[piece.Color], piece.Type);
+
+    public void Add(Piece piece, GameObject gameObject) => this.pieceObjects[piece.Color][piece.Type].Enqueue(gameObject);
+
+    public IEnumerable<GameObject> GetTakenPieces() => this.pieceObjects.SelectMany(player => player.Value.SelectMany(piece => piece.Value));
 
     private static GameObject GetPiece(IDictionary<PieceType, Queue<GameObject>> objects, PieceType type)
     {
