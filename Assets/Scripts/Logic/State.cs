@@ -21,8 +21,6 @@ public class State
     public Move LastAttemptedMove { get; private set; }
 
     public List<Position> EnemyMoveOptions { get; set; }
-    
-    public List<Position> CurrentMoveOptions { get; set; }
 
     public State()
     {

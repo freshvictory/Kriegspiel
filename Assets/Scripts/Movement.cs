@@ -47,7 +47,10 @@ public class Movement : MonoBehaviour, IDragHandler, IEndDragHandler
     {
         var destination = this.rectTransform.offsetMax.ToPosition(this.boardRenderer.Offset);
 
-	    var moveResult = this.boardRenderer.State.Move(origin, destination);
+	    var playerColor = this.boardRenderer.Player;
+	    var normalizedDestination = Position.Normalize(destination, playerColor);
+	    
+	    var moveResult = this.boardRenderer.State.Move(origin, normalizedDestination);
 
         this.statusText.text = (moveResult == MoveResult.Legal 
 	                               ? "<color=green> Legal </color>"
@@ -61,7 +64,10 @@ public class Movement : MonoBehaviour, IDragHandler, IEndDragHandler
 
 	private void ShowMoves()
 	{
-		this.originalPosition = this.rectTransform.offsetMax.ToPosition(this.boardRenderer.Offset);
+		var origin = this.rectTransform.offsetMax.ToPosition(this.boardRenderer.Offset);
+
+		var playerColor = this.boardRenderer.Player;
+		this.originalPosition = Position.Normalize(origin, playerColor);
 		
 		this.possibleMoves = MoveOptions.GetCheckedMoveOptions(this.originalPosition, this.boardRenderer.State.Board);
 		
