@@ -22,6 +22,12 @@ public struct Delta
         this.File = new VectorComponent(file);
     }
 
+    public Delta(VectorComponent rank, VectorComponent file)
+    {
+        this.Rank = rank;
+        this.File = file;
+    }
+
     public static bool IsHorizontal(Delta delta)
     {
         return delta.File.Direction == 0;
@@ -46,6 +52,39 @@ public struct Delta
     {
         return !(a == b);
     }
+
+    public static Delta operator *(int multiplier, Delta delta)
+    {
+        return new Delta(multiplier * delta.Rank.Raw, multiplier * delta.File.Raw);
+    }
+    
+    private bool Equals(Delta other)
+    {
+        return this.Rank.Equals(other.Rank) && this.File.Equals(other.File);
+    }
+
+    public override bool Equals(object obj)
+    {
+        if (obj == null)
+        {
+            return false;
+        }
+        
+        return obj is Delta && this.Equals((Delta)obj);
+    }
+
+    public override int GetHashCode()
+    {
+        unchecked
+        {
+            return (this.Rank.GetHashCode() * 397) ^ this.File.GetHashCode();
+        }
+    }
+
+    public override string ToString()
+    {
+        return "(" + this.Rank.Raw + ", " + this.File.Raw + ")";
+    }
 }
 
 public struct VectorComponent
@@ -61,6 +100,11 @@ public struct VectorComponent
         this.Raw = value;
         this.Magnitude = Math.Abs(value);
         this.Direction = Math.Sign(value);
+    }
+
+    public static VectorComponent operator -(VectorComponent vectorComponent)
+    {
+        return new VectorComponent(-vectorComponent.Raw);
     }
 }
 

@@ -25,7 +25,8 @@ public struct Position
 
     public static IEnumerable<Position> GetRange(Position origin, Delta delta)
     {
-        if (delta == Delta.Zero)
+        if (delta == Delta.Zero
+            || (delta.Rank.Magnitude <= 1 && delta.File.Magnitude <= 1))
         {
             yield return origin;
         }
@@ -87,6 +88,11 @@ public struct Position
         {
             return (this.Rank * 397) ^ this.File;
         }
+    }
+
+    public override string ToString()
+    {
+        return "(" + this.Rank + ", " + this.File + ")";
     }
 }
 

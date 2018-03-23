@@ -29,6 +29,13 @@ public class Board
         this.board = board.board;
     }
 
+    public Board(Move move, Board board)
+    {
+        this.board = (Piece[,])board.board.Clone();
+        this[move.Destination] = move.Piece;
+        this[move.Origin] = Piece.None;
+    }
+
     public Piece this[Position position]
     {
         get
@@ -40,6 +47,14 @@ public class Board
             value.Moved = true;
             this.board[position.Rank, position.File] = value;
         }
+    }
+
+    public bool InBounds(Position position)
+    {
+        return position.Rank < this.board.GetLength(0)
+            && position.File < this.board.GetLength(1)
+            && position.Rank >= 0
+            && position.File >= 0;
     }
 
     private static IEnumerable<Position> GetPositions()

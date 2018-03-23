@@ -86,7 +86,7 @@ namespace Tests
         private static bool GetLegality(int originRank, int originFile, int destinationRank, int destinationFile, Board board)
         {
             var move = GetMove(originRank, originFile, destinationRank, destinationFile, board);
-            return Legality.CheckMove(move, board, move.Piece.Color) == Rule.None;
+            return Legality.CheckMove(move, board, new Player(move.Piece.Color)) == Rule.None;
         }
 
         private static Move GetMove(int originRank, int originFile, int destinationRank, int destinationFile, Board board)

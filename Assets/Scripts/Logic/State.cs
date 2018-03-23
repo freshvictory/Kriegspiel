@@ -2,9 +2,11 @@
 
 public class State
 {
-    public PlayerColor Player { get; set; }
+    private readonly Player blackPlayer = new Player(PlayerColor.Black);
     
-    public PlayerColor Turn { get; private set; }
+    private readonly Player whitePlayer = new Player(PlayerColor.White);
+    
+    public Player Turn { get; private set; }
     
     public Board Board { get; }
     
@@ -18,24 +20,15 @@ public class State
     
     public Move LastAttemptedMove { get; private set; }
 
+    public List<Position> EnemyMoveOptions { get; set; }
+    
+    public List<Position> CurrentMoveOptions { get; set; }
+
     public State()
     {
-        this.Player = PlayerColor.White;
-        this.Turn = PlayerColor.White;
+        this.Turn = this.whitePlayer;
         this.Board = new Board();
-    }
-
-    public State(PlayerColor playerColor)
-    {
-        this.Player = playerColor;
-        this.Turn = PlayerColor.White;
-        this.Board = new Board();
-    }
-
-    public State(PlayerColor turn, Board board)
-    {
-        this.Turn = turn;
-        this.Board = board;
+        this.EnemyMoveOptions = new List<Position>();
     }
 
     public MoveResult Move(Position origin, Position destination)
@@ -46,24 +39,28 @@ public class State
 
         this.LastAttemptedMove = move;
 
-        if (move.Legality == Rule.None)
+        switch (move.Legality)
         {
-            this.LastMove = this.LastAttemptedMove;
+            case Rule.None:
+                this.LastMove = this.LastAttemptedMove;
             
-            this.CompleteMove(move);
+                this.CompleteMove(move);
 
-            var win = false;
-            if (win)
-            {
-                move.MoveResult = MoveResult.Checkmate;
-                return MoveResult.Checkmate;
-            }
+                var win = false;
+                if (win)
+                {
+                    move.MoveResult = MoveResult.Checkmate;
+                    return MoveResult.Checkmate;
+                }
 
-            move.MoveResult = MoveResult.Legal;
-        }
-        else
-        {
-            move.MoveResult = MoveResult.Illegal;
+                move.MoveResult = MoveResult.Legal;
+                break;
+            case Rule.InCheck:
+                move.MoveResult = MoveResult.Check;
+                break;
+            default:
+                move.MoveResult = MoveResult.Illegal;
+                break;
         }
 
         return move.MoveResult;
@@ -75,12 +72,16 @@ public class State
 
         if (takenPiece.Color != PlayerColor.None)
         {
-            this.TakenPieces[this.Turn].Add(takenPiece);
+            this.TakenPieces[this.Turn.Color].Add(takenPiece);
         }
 
         this.Board[move.Destination] = move.Piece;
         this.Board[move.Origin] = Piece.None;
 
-        this.Turn = this.Turn.Enemy();
+        this.Turn = this.Turn.Color == PlayerColor.Black ? this.whitePlayer : this.blackPlayer;
+
+        this.EnemyMoveOptions = MoveOptions.GetUncheckedMoveOptions(this.Turn.Color.Enemy(), this.Board, this.EnemyMoveOptions);
+
+        this.Turn.InCheck = Checker.IsInCheck(this.Turn.Color, this.Board, this.EnemyMoveOptions);
     }
 }

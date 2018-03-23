@@ -1,8 +1,9 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
-public class Movement : MonoBehaviour,  IDragHandler, IEndDragHandler
+public class Movement : MonoBehaviour, IDragHandler, IEndDragHandler
 {
 	private RectTransform rectTransform;
     private BoardRenderer boardRenderer;
@@ -10,6 +11,7 @@ public class Movement : MonoBehaviour,  IDragHandler, IEndDragHandler
 	
     private bool initial = true;
     private Position originalPosition;
+	private List<Position> possibleMoves;
 
 	void Start ()
 	{
@@ -20,6 +22,13 @@ public class Movement : MonoBehaviour,  IDragHandler, IEndDragHandler
 
     public void OnDrag(PointerEventData eventData)
     {
+	    if (this.initial)
+	    {
+		    this.ShowMoves();
+
+		    this.initial = false;
+	    }
+	    
         this.MovePiece();
     }
 
@@ -30,14 +39,6 @@ public class Movement : MonoBehaviour,  IDragHandler, IEndDragHandler
 
 	private void MovePiece()
 	{
-		this.statusText.text = "Status: ";
-		if (this.initial)
-		{
-			this.originalPosition = this.rectTransform.offsetMax.ToPosition(this.boardRenderer.Offset);
-			
-			this.initial = false;
-		}
-	    
 		this.rectTransform.SetAsLastSibling();
 		this.rectTransform.position = Input.mousePosition;
 	}
@@ -54,6 +55,18 @@ public class Movement : MonoBehaviour,  IDragHandler, IEndDragHandler
 	    
         this.boardRenderer.DrawBoard();
 	    
-        this.initial = true;
+        this.boardRenderer.RemoveHighlight();
+	    this.initial = true;
     }
+
+	private void ShowMoves()
+	{
+		this.originalPosition = this.rectTransform.offsetMax.ToPosition(this.boardRenderer.Offset);
+		
+		this.possibleMoves = MoveOptions.GetCheckedMoveOptions(this.originalPosition, this.boardRenderer.State.Board);
+		
+		this.boardRenderer.HighlightPossibleMoves(this.possibleMoves);
+			
+		this.statusText.text = string.Join(",", this.possibleMoves);
+	}
 }

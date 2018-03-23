@@ -12,6 +12,7 @@ public class BoardRenderer : MonoBehaviour
 	public PlayerColor Player;
 
 	public GameObject PiecePrefab;
+	public GameObject HighlightedSquarePrefab;
 
 	[Header("Images")]
 	public PieceImage Pawn;
@@ -25,6 +26,7 @@ public class BoardRenderer : MonoBehaviour
 
 	private IDictionary<PieceType, PieceImage> pieceImages;
 	private PieceObjects pieceObjects = new PieceObjects();
+	private List<GameObject> highlightedSquareObjects;
 	
 	public State State;
 
@@ -51,7 +53,7 @@ public class BoardRenderer : MonoBehaviour
 	}
 
     private void MakeBoard(PlayerColor playerColor) {
-        this.State = new State(playerColor);
+        this.State = new State();
     }
 
     public void DrawBoard() {
@@ -90,6 +92,32 @@ public class BoardRenderer : MonoBehaviour
 	    this.BoardText.text = this.TakenPieces();
     }
 
+	public void HighlightPossibleMoves(List<Position> possibleMoves)
+	{
+		this.highlightedSquareObjects = new List<GameObject>();
+		
+		foreach (var position in possibleMoves)
+		{
+			var normalized = Position.Normalize(position, this.Player);
+
+			var highlightedSquareObject = Instantiate(this.HighlightedSquarePrefab);
+			
+			this.highlightedSquareObjects.Add(highlightedSquareObject);
+			
+			this.PositionPiece(highlightedSquareObject, normalized);
+		}
+	}
+
+	public void RemoveHighlight()
+	{
+		foreach (var highlightedSquareObject in this.highlightedSquareObjects)
+		{
+			Destroy(highlightedSquareObject);
+		}
+
+		this.highlightedSquareObjects = new List<GameObject>();
+	}
+
 	private GameObject InstantiatePiece(Piece piece)
 	{
 		var pieceObject = Instantiate(this.PiecePrefab);
@@ -123,7 +151,8 @@ public class BoardRenderer : MonoBehaviour
 	{
 		var stringBuilder = new StringBuilder();
 		stringBuilder
-			.AppendLine("turn: <b>" + this.State.Turn + "</b>")
+			.AppendLine("turn: <b>" + this.State.Turn.Color + "</b>")
+			.AppendLine("player in check: " + this.State.Turn.InCheck)
 			.AppendLine();
 
 		if (this.State.LastMove != null)
